@@ -26,7 +26,8 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const [trendingMovies, setTrendingMovies] = useState([]);
-  //cosnt[(trendErrorMessage, setTrendErrorMessage)] = useState("");
+  const [trendingMoviesLoading, setTrendingMoviesLoading] = useState(false);
+  const [trendingMoviesError, setTrendingMoviesError] = useState("");
 
   useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm]);
 
@@ -67,11 +68,22 @@ const App = () => {
 
   const fecthTrendingMovies = async () => {
     try {
+      setTrendingMoviesLoading(true);
+
       const trenMovies = await getTrendingMovies();
+
+      if (trenMovies.length < 1) {
+        throw new Error("Failed to fetch Trending Movies! 😶‍🌫️");
+      }
 
       setTrendingMovies(trenMovies);
     } catch (error) {
       console.error(`Error Fetching Trending Movies : ${error}`);
+      setTrendingMoviesError(
+        `Error Fetching Trending Movies!😔 Try again later 😶‍🌫️`
+      );
+    } finally {
+      setTrendingMoviesLoading(false);
     }
   };
 
@@ -96,9 +108,15 @@ const App = () => {
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
 
-        {trendingMovies.length > 0 && (
-          <section className="trending">
-            <h2>Trending Movies🍿</h2>
+        <section className="trending">
+          <h2>Trending Movies🍿</h2>
+          {trendingMoviesLoading ? (
+            <Spinner />
+          ) : trendingMoviesError ? (
+            <p className="text-red-600 text-3xl m-3.5 mb-15.5 relative right-3.5">
+              {trendingMoviesError}
+            </p>
+          ) : (
             <ul>
               {trendingMovies.map((movie, index) => (
                 <li key={movie.$id}>
@@ -107,8 +125,8 @@ const App = () => {
                 </li>
               ))}
             </ul>
-          </section>
-        )}
+          )}
+        </section>
 
         <section className="all-movies">
           <h2>All Movies</h2>
